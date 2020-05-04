@@ -2,6 +2,8 @@ module Main where
 
 import Text.ParserCombinators.Parsec
 import Data.List(sortBy)
+import Test.QuickCheck
+import Control.Monad (liftM2, replicateM)
 
 --parses output of "du -subdirectory"
 parseInput = 
@@ -11,7 +13,7 @@ parseInput =
 
 --datatype Dir holds information about a single directory
 -- its size and name 
-data Dir = Dir {dir_size::Int, dir_name::String} deriving Show
+data Dir = Dir {dir_size::Int, dir_name::String} deriving (Show, Eq)
 
 -- `dirAndSize` parses information about single directory, which is:
 -- a size in bytes (number), some spaces, then directory name, which extends till newline
@@ -53,3 +55,23 @@ main = do input <- getContents
                           Right result -> result
           putStrLn "DEBUG: parsed:"; print dirs
           putStrLn "Solution:" ; print (greedy_pack dirs)
+
+--teach quickcheck to generate arbitrary dirs
+instance Arbitrary Dir where
+    --coarbitrary = undefined
+    shrink = undefined
+    --generate arbitrary "Dir" by generating random size and random names
+    --then stuffing inside "Dir"
+    arbitrary = liftM2 Dir gen_size gen_name
+              --generate random size between 10 and 1400 mb
+        where gen_size = do s <- choose (10,1400)
+                            return (s*1024*1024)
+              --Generate random name 1 to 300 chars long consisting of "fubyar/"
+              gen_name = do n <- choose (1,300)
+                            replicateM n (elements "fubar/")
+                            
+--quickcheck tests begin with prop_
+--assume "ds" will be a random list of "dirs" and code the test
+prop_greedy_pack_is_fixpoint ds = 
+    let pack = greedy_pack ds
+        in pack_size pack == pack_size (greedy_pack (dirs pack))
