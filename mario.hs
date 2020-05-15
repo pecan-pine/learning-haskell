@@ -18,6 +18,16 @@ rstring n s = putStr $ intercalate "" $ replicate n s
 
 rstringLn n s = putStrLn $ intercalate "" $ replicate n s
 
+--get integer between 1 and 17
+--not finished--doesn't check for alpha characters
+getInt = do
+    putStrLn "Height:"
+    input <- getLine
+    let height = read input :: Int
+    if height <= 17 && height > 0 
+        then return height 
+        else getInt
+
 main = do
     putStrLn "Height:"
     input <- getLine
